@@ -18,8 +18,9 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('a user connected');
-  players.push({id : socket.id, name : "", hand : []})
-  socket.on('start game', (playerName) => { console.log("start game")
+  players.push({ id: socket.id, name: "", hand: [] })
+  socket.on('start game', (playerName) => {
+    console.log("start game")
     // Vérifie si 2 joueurs ont le même nom
     const existingPlayer = players.find((p) => p.name === playerName);
     if (existingPlayer) {
@@ -37,12 +38,12 @@ io.on('connection', (socket) => {
     const playersWithNames = players.filter((p) => p.name !== "");
     if (playersWithNames.length === 2) {
       io.emit('gameStart');
+      distribuerCartes();
     }
   });
 
-  socket.on('playCard', (carte) => {
-    // io.emit('nouvelle-carte', { player: players[socket.id].name, card: carte });
-    verifierOrdreCartes();
+  socket.on('playCard', (player, carte) => {
+    playCard(player, carte)
   });
 
   socket.on('nextLevel', () => {
@@ -59,17 +60,28 @@ io.on('connection', (socket) => {
   });
 });
 
+function startLevel() {
+
+}
+
+function playCard(playerId: string, playedCard: number) {
+  const player = players.find(p => p.id === playerId);
+  // player.hand.splice(player.hand.indexOf(playedCard), 1);
+  io.emit('cardPlayed', { playerId, playedCard });
+  verifierOrdreCartes();
+}
+
 function distribuerCartes() {
   const cartesDuNiveau = niveauDeCarte[currentLevel - 1];
-
   players.forEach(p => {
     p.hand = [];
     for (let i = 0; i < cartesDuNiveau.length; i++) {
       const carteIndex = Math.floor(Math.random() * deck.length);
+      console.log("carte Index", carteIndex)
       p.hand.push(deck[carteIndex]);
       deck = deck.filter((val, i) => i !== carteIndex)
     }
-    io.to(p.id).emit('CardsPick')
+    io.to(p.id).emit('CardsPick', p.hand)
   });
 }
 
@@ -84,7 +96,48 @@ function shuffleDeck(deck: number[]): number[] {
   }
   return shuffledDeck;
 }
+
 function verifierOrdreCartes() {
+  const cardPlayed = {};
+  let toutesLesCartesJouees = true;
+  let ordreCorrect = true;
+  // Récupérer la carte jouée par chaque joueur
+  players.forEach(player => {
+    const lastPlayedCard = player.hand[player.hand.length - 1];
+    // cardPlayed[player.id] = lastPlayedCard;
+
+    // Vérifier si toutes les cartes ont été jouées
+    if (!lastPlayedCard) {
+      toutesLesCartesJouees = false;
+    }
+  });
+
+  // Si toutes les cartes ont été jouées, vérifier l'ordre
+  if (toutesLesCartesJouees) {
+    // const cartesDansLordre = Object.values(cardPlayed).sort((a, b) => a - b);
+
+    // // Vérifier si les cartes sont dans l'ordre
+    // for (let i = 0; i < cartesDansLordre.length; i++) {
+    //   if (cartesDansLordre[i] !== niveauDeCarte[currentLevel - 1][i]) {
+    //     ordreCorrect = false;
+    //     break;
+    //   }
+    // }
+
+    // if (ordreCorrect) {
+    //   io.emit('correctOrder', { level: currentLevel, cards: cartesDansLordre });
+    // } else {
+    //   lostsALife();
+    // }
+
+    // Si toutes les vies sont épuisées, vérifier la fin du jeu
+    // if (lostsALife() === 0) {
+    //     verifierFinDuJeu();
+    // }
+  }
+  function lostsALife() {
+
+  }
 }
 
 server.listen(3000, () => {
