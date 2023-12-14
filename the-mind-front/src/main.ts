@@ -24,7 +24,7 @@ const buttonPlay = document.getElementById('play') as HTMLButtonElement;
 
 const buttonPlayer = document.getElementById('btn-player1') as HTMLButtonElement;
       buttonPlayer.textContent= 'Ready';
-socket.emit()
+
 
 
 socket.on("disconnect", () => {

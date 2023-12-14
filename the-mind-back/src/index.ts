@@ -18,8 +18,8 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('a user connected');
-
-  socket.on('start game', (playerName) => {
+  players.push({id : socket.id, name : "", hand : []})
+  socket.on('start game', (playerName) => { console.log("start game")
     // Vérifie si 2 joueurs ont le même nom
     const existingPlayer = players.find((p) => p.name === playerName);
     if (existingPlayer) {
@@ -32,7 +32,7 @@ io.on('connection', (socket) => {
     if (myPlayerIndex !== -1 && !players[myPlayerIndex].name) {
       players[myPlayerIndex].name = playerName;
     }
-
+    console.log("joueur modifié", players)
     // Vérifie si 2 joueurs on un nom remplis et lance la partie si c'est le cas
     const playersWithNames = players.filter((p) => p.name !== "");
     if (playersWithNames.length === 2) {
